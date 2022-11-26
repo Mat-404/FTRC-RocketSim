@@ -9,6 +9,7 @@
 ###################################################
 
     ##  Importing libraries and spreadsheet ##
+import thrustCurveAnalysis as tca
 import matplotlib.pyplot as plt
 import openpyxl
 from openpyxl import load_workbook
@@ -16,11 +17,15 @@ from os.path import exists
 wb = load_workbook("Mk1 Data Sheet.xlsx")
 Engines = wb["Engines"]
 Dims = wb["Volume Calculations"]
+tcd = load_workbook("thrustCurveData.xlsx")
+tcdSheet=tcd["Sheet1"]
+
+saveData = False
 
 if exists("coconut.jpg"):
 
 
-  choice=input("Which engine do you want to use? [1] D12-5  [2] F15-4  ")
+  choice=input("Which engine do you want to use? [1] D12  [2] F15  ")
 
   numberOfEngines = Engines['D2'].value
 
@@ -69,6 +74,10 @@ if exists("coconut.jpg"):
   pressure = 0
   thrust = 0
 
+if int(choice) == 1:
+  tca.main("D12")
+elif int(choice) == 2:
+  tca.main("F15")
 
   #### Main Loop ####
 for i in range(0, int(timeLimit/timeStep)):
@@ -76,6 +85,7 @@ for i in range(0, int(timeLimit/timeStep)):
         currentMass = initialMass-burnedMass
 
     if int(choice) == 1:
+
         ######  This is where the thrust is calculated for D12  ######
       if i >= 0 and i < 0.282/timeStep:
           thrust = (105.425*(i*timeStep))*numberOfEngines
@@ -87,7 +97,10 @@ for i in range(0, int(timeLimit/timeStep)):
           thrust = (155.91-100.23*(i*timeStep))*numberOfEngines
       else:
           thrust = 0
+
+
     elif int(choice) == 2:
+
         ######  This is where the thrust is calculated for F15  ######
       if i >= 0 and i < 0.477/timeStep:
           thrust = (53*(i*timeStep))*numberOfEngines
@@ -149,3 +162,9 @@ axis[1,1].plot(time, accel)
 axis[1,1].set_title("Acceleration vs Time")
 
 plt.show()
+
+if saveData == False:
+  tcdSheet.delete_cols(1, 1000)
+  tcdSheet.delete_rows(1, 1000)
+
+tcd.save("thrustCurveData.xlsx")
