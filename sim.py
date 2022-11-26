@@ -16,15 +16,29 @@ wb = load_workbook("Mk1 Data Sheet.xlsx")
 Engines = wb["Engines"]
 Dims = wb["Volume Calculations"]
 
-    ##  Defining variables ##
+choice=input("Which engine do you want to use? [1] D12-5  [2] F15-4  ")
+
 numberOfEngines = Engines['D2'].value
-initialMass = (Engines['B13'].value + Engines['B14'].value) * \
-    Engines['D2'].value + Engines['B22'].value + Engines['D20'].value  # kg
-propellantMass = Engines['B14'].value*numberOfEngines  # kg
-burnRate = propellantMass / (Engines['B10'].value)  # burnRate in kg/s
-timeLimit = 12  # seconds
-timeStep = .001  # seconds
-angle = 14.04952  # Angle between edge and center of cone in degrees
+
+if int(choice) == 1:
+
+      ##  Defining variables ##
+  initialMass = (Engines['B11'].value+Engines['B12'].value)*numberOfEngines + Engines['B22'].value + Engines['B21'].value  # kg
+  propellantMass = Engines['B12'].value*numberOfEngines  # kg
+  burnRate = propellantMass / (Engines['B10'].value)  # burnRate in kg/s
+  timeLimit = 12  # seconds
+  timeStep = .001  # seconds
+  angle = 14.04952  # Angle between edge and center of cone in degrees
+
+elif int(choice) == 2:
+  
+        ##  Defining variables ##
+  initialMass = (Engines['G11'].value+Engines['G12'].value)*numberOfEngines + Engines['G22'].value + Engines['G21'].value  # kg
+  propellantMass = Engines['G12'].value*numberOfEngines  # kg
+  burnRate = propellantMass / (Engines['G10'].value)  # burnRate in kg/s
+  timeLimit = 12  # seconds
+  timeStep = .001  # seconds
+  angle = 14.04952  # Angle between edge and center of cone in degrees
 
 #print("Initial Mass: ", round(initialMass, 2), "propellantMass: ",
 #      round(propellantMass, 2), "burnRate: ", round(burnRate, 2))
@@ -39,6 +53,7 @@ accel = [None]*int(timeLimit/timeStep)
 Vel = [None]*int(timeLimit/timeStep)
 height = [None]*int(timeLimit/timeStep)
 
+print(initialMass, propellantMass, burnRate)
 
 ##   Zeroing Variables   ##
 burnedMass = 0
@@ -58,19 +73,32 @@ for i in range(0, int(timeLimit/timeStep)):
     if burnedMass < propellantMass:
         currentMass = initialMass-burnedMass
 
+    if int(choice) == 1:
+        ######  This is where the thrust is calculated for D12  ######
+      if i >= 0 and i < 0.282/timeStep:
+          thrust = (105.425*(i*timeStep))*numberOfEngines
+      elif i >= 0.282/timeStep and i < 0.386/timeStep:
+          thrust = (76.89-167.54*(i*timeStep))*numberOfEngines
+      elif i >= 0.386/timeStep and i < 1.436/timeStep:
+          thrust = (12.099-0.00567*(i*timeStep))*numberOfEngines
+      elif i >= 1.436/timeStep and i < 1.556/timeStep:
+          thrust = (155.91-100.23*(i*timeStep))*numberOfEngines
+      else:
+          thrust = 0
+    elif int(choice) == 2:
+        ######  This is where the thrust is calculated for F15  ######
+      if i >= 0 and i < 0.477/timeStep:
+          thrust = (53*(i*timeStep))*numberOfEngines
+      elif i >= 0.477/timeStep and i < 1.503/timeStep:
+          thrust = (  (4*(i*timeStep)-5.1)**2   +15 )*numberOfEngines
+      elif i >= 1.503/timeStep and i < 3.39/timeStep:
+          thrust = (18-1.5*(i*timeStep))*numberOfEngines
+      elif i >= 3.39/timeStep and i < 3.45/timeStep:
+          thrust = (420-120*(i*timeStep))*numberOfEngines
+      else:
+          thrust = 0
 
-      ######  This is where the thrust is calculated  ######
-    if i >= 0 and i < 0.282/timeStep:
-        thrust = (105.425*(i*timeStep))*numberOfEngines
-    elif i >= 0.282/timeStep and i < 0.386/timeStep:
-        thrust = (76.89-167.54*(i*timeStep))*numberOfEngines
-    elif i >= 0.386/timeStep and i < 1.436/timeStep:
-        thrust = (12.099-0.00567*(i*timeStep))*numberOfEngines
-    elif i >= 1.436/timeStep and i < 1.556/timeStep:
-        thrust = (155.91-100.23*(i*timeStep))*numberOfEngines
-    else:
-        thrust = 0
-
+    #print(round(thrust,2))
 
       ######  This is where the drag is calculated  ######
     if distance < 11019.13:
@@ -91,6 +119,7 @@ for i in range(0, int(timeLimit/timeStep)):
     if distance > maxHeight:
         maxHeight = distance
 
+    #print(round(thrust,2),round(velocity,2))
 
       ######  This is where the data is stored  ######
     time[i] = i
