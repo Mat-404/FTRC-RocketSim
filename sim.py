@@ -12,60 +12,62 @@
 import matplotlib.pyplot as plt
 import openpyxl
 from openpyxl import load_workbook
+from os.path import exists
 wb = load_workbook("Mk1 Data Sheet.xlsx")
 Engines = wb["Engines"]
 Dims = wb["Volume Calculations"]
 
-choice=input("Which engine do you want to use? [1] D12-5  [2] F15-4  ")
+if exists("coconut.jpg"):
 
-numberOfEngines = Engines['D2'].value
 
-if int(choice) == 1:
+  choice=input("Which engine do you want to use? [1] D12-5  [2] F15-4  ")
 
-      ##  Defining variables ##
-  initialMass = (Engines['B11'].value+Engines['B12'].value)*numberOfEngines + Engines['B22'].value + Engines['B21'].value  # kg
-  propellantMass = Engines['B12'].value*numberOfEngines  # kg
-  burnRate = propellantMass / (Engines['B10'].value)  # burnRate in kg/s
-  timeLimit = 12  # seconds
-  timeStep = .001  # seconds
-  angle = 14.04952  # Angle between edge and center of cone in degrees
+  numberOfEngines = Engines['D2'].value
 
-elif int(choice) == 2:
-  
+  if int(choice) == 1:
+
         ##  Defining variables ##
-  initialMass = (Engines['G11'].value+Engines['G12'].value)*numberOfEngines + Engines['G22'].value + Engines['G21'].value  # kg
-  propellantMass = Engines['G12'].value*numberOfEngines  # kg
-  burnRate = propellantMass / (Engines['G10'].value)  # burnRate in kg/s
-  timeLimit = 12  # seconds
-  timeStep = .001  # seconds
-  angle = 14.04952  # Angle between edge and center of cone in degrees
+    initialMass = (Engines['B11'].value+Engines['B12'].value)*numberOfEngines + Engines['B22'].value + Engines['B21'].value  # kg
+    propellantMass = Engines['B12'].value*numberOfEngines  # kg
+    burnRate = propellantMass / (Engines['B10'].value)  # burnRate in kg/s
+    timeLimit = 12  # seconds
+    timeStep = .001  # seconds
+    angle = 14.04952  # Angle between edge and center of cone in degrees
+
+  elif int(choice) == 2:
+  
+          ##  Defining variables ##
+    initialMass = (Engines['G11'].value+Engines['G12'].value)*numberOfEngines + Engines['G22'].value + Engines['G21'].value  # kg
+    propellantMass = Engines['G12'].value*numberOfEngines  # kg
+    burnRate = propellantMass / (Engines['G10'].value)  # burnRate in kg/s
+    timeLimit = 12  # seconds
+    timeStep = .001  # seconds
+    angle = 14.04952  # Angle between edge and center of cone in degrees
 
 #print("Initial Mass: ", round(initialMass, 2), "propellantMass: ",
 #      round(propellantMass, 2), "burnRate: ", round(burnRate, 2))
 
-crossSectionalArea = 3.14*(0.305/2)**2  # m^2
-coeffDrag = 0.0112*angle+0.162  # drag coefficient
+  crossSectionalArea = 3.14*(0.305/2)**2  # m^2
+  coeffDrag = 0.0112*angle+0.162  # drag coefficient
 
-##   Initializing Arrays   ##
-time = [None]*int(timeLimit/timeStep)
-Thrust = [None]*int(timeLimit/timeStep)
-accel = [None]*int(timeLimit/timeStep)
-Vel = [None]*int(timeLimit/timeStep)
-height = [None]*int(timeLimit/timeStep)
+  ##   Initializing Arrays   ##
+  time = [None]*int(timeLimit/timeStep)
+  Thrust = [None]*int(timeLimit/timeStep)
+  accel = [None]*int(timeLimit/timeStep)
+  Vel = [None]*int(timeLimit/timeStep)
+  height = [None]*int(timeLimit/timeStep)
 
-print(initialMass, propellantMass, burnRate)
-
-##   Zeroing Variables   ##
-burnedMass = 0
-velocity = 0
-distance = 0
-maxHeight = 0
-maxVel = 0
-Drag = 0
-density = 0
-temperature = 0
-pressure = 0
-thrust = 0
+  ##   Zeroing Variables   ##
+  burnedMass = 0
+  velocity = 0
+  distance = 0
+  maxHeight = 0
+  maxVel = 0
+  Drag = 0
+  density = 0
+  temperature = 0
+  pressure = 0
+  thrust = 0
 
 
   #### Main Loop ####
