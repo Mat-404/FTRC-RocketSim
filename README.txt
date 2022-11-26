@@ -47,7 +47,12 @@
                                                                                 
                                                                                 
 
-
+TO USE:
+    -Install folder and open in IDE of your choice, preferrably VSCode.
+    -Install dependencies as detailed below
+    -Run sim.py to start the simulation. You will be asked to choose which engine you want to simulate with.
+        Right now, the simulation only uses D12-5 and F15-4 engines, however thrustCurveAnalysis.py is under development
+        in order to allow for more engines to be used.
 
 This simulation was created to get rough estimates for design specs for the Florida Tech Rocketry Club rocket.
 
@@ -67,7 +72,7 @@ If someone thinks of a better way to do this, please let me know.
 However, it is missing the mass of the fins, as well as having a rough estimate of 3D-printing mass.
     There were also no mass estimates made for any metal components or parachute components. More reasearch is needed.
 
-    In order to run, the local system needs to have Python, Pip, matplotlib, and openpyxl. These can be installed with the following:
+    In order to run the simulation, the local system needs to have Python, Pip, matplotlib, and openpyxl. These can be installed with the following:
 
     Python: Can be installed from online .exe or through a VSCode extension
         -https://www.python.org/downloads/
@@ -81,6 +86,13 @@ However, it is missing the mass of the fins, as well as having a rough estimate 
     openpyxl: pip install openpyxl
         -https://pypi.org/project/openpyxl/
 
+    In order to run the thrust curve analysis, your local system also needs requests and PyPDF2. These can be installed with the following:
+
+    requests: pip install requests
+        -https://pypi.org/project/requests/
+
+    PyPDF2: pip install PyPDF2
+        -https://pypi.org/project/PyPDF2/
 
     -Mathieu Cote
     Florida Tech Rocketry Club

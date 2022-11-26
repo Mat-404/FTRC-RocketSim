@@ -8,7 +8,9 @@
 import requests
 import urllib
 import PyPDF2
+import numpy as np
 from os.path import exists
+import matplotlib.pyplot as plt
 
 choice = input("What engine type: ")
 
@@ -24,7 +26,6 @@ pageObj = pdfReader.getPage(numberOfPages-1)
 pageText=pageObj.extractText(0)
 pageTextArr=pageText.split('\n')
 #print(pageText)
-print ('\n')
 dataPts = []
 datafound=False
 for i in pageTextArr:
@@ -41,19 +42,32 @@ dataPts.pop()
 dataPts.pop()
 dataPts.pop()
 
-#print(dataPts)
-
-currentchar=''
-prevchar=''
-thrustCurve = []
+indexCt=0
 for i in dataPts:
-    for element in i:
-        currentchar=element
-        if currentchar == ' ' and prevchar == ' ':
-            i.replace(' ','',1)
-        prevchar=currentchar
+    dataPts[indexCt]=i.split()
+    indexCt+=1
 
-    tempString=i.split(' ')
-    print(tempString)
-    thrustCurve.append(tempString[0])
-    thrustCurve.append(tempString[1])
+for i in dataPts:
+    indexCt=0
+    for element in i:
+        if element == ' ':
+            del dataPts[indexCt]
+        indexCt+=1
+
+#print (dataPts)
+
+xVals=[]
+yVals=[]
+
+for i in dataPts:
+    xVals.append(float(i[0]))
+    yVals.append(float(i[1]))
+
+#print(xVals)
+#print(yVals)
+
+plt.plot(xVals,yVals)
+plt.xlabel('Time (s)')
+plt.ylabel('Thrust (N)')
+plt.show()
+

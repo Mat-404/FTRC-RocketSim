@@ -51,11 +51,11 @@ if exists("coconut.jpg"):
   coeffDrag = 0.0112*angle+0.162  # drag coefficient
 
   ##   Initializing Arrays   ##
-  time = [None]*int(timeLimit/timeStep)
-  Thrust = [None]*int(timeLimit/timeStep)
-  accel = [None]*int(timeLimit/timeStep)
-  Vel = [None]*int(timeLimit/timeStep)
-  height = [None]*int(timeLimit/timeStep)
+  time = [None]
+  Thrust = [None]
+  accel = [None]
+  Vel = [None]
+  height = [None]
 
   ##   Zeroing Variables   ##
   burnedMass = 0
@@ -124,11 +124,11 @@ for i in range(0, int(timeLimit/timeStep)):
     #print(round(thrust,2),round(velocity,2))
 
       ######  This is where the data is stored  ######
-    time[i] = i
-    height[i] = distance
-    Thrust[i] = thrust
-    Vel[i] = velocity
-    accel[i] = acceleration
+    time.append(i)
+    height.append(distance)
+    Thrust.append(thrust)
+    Vel.append(velocity)
+    accel.append(acceleration)
 
   ##### List maximums #####
 print("Max Height: ", round(maxHeight, 3), "m",
