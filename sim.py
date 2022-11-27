@@ -9,7 +9,7 @@
 ###################################################
 
     ##  Importing libraries and spreadsheet ##
-import thrustCurveAnalysis as tca
+import thrustCurveAnalysis_UPDATED as tca
 import matplotlib.pyplot as plt
 import openpyxl
 from openpyxl import load_workbook
