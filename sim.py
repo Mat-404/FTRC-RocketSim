@@ -18,7 +18,7 @@ wb = load_workbook("Mk1 Data Sheet.xlsx")
 Engines = wb["Engines"]
 Dims = wb["Volume Calculations"]
 tcd = load_workbook("thrustCurveData.xlsx")
-tcdSheet=tcd["Sheet1"]
+tcdSheet = tcd["Sheet1"]
 
 saveData = False
 
@@ -74,46 +74,27 @@ if exists("coconut.jpg"):
   pressure = 0
   thrust = 0
 
+thrustCurve=[]
+
 if int(choice) == 1:
-  tca.main("D12")
+  thrustCurve=tca.main("D12")
 elif int(choice) == 2:
-  tca.main("F15")
+  thrustCurve=tca.main("F15")
 
   #### Main Loop ####
 for i in range(0, int(timeLimit/timeStep)):
     if burnedMass < propellantMass:
         currentMass = initialMass-burnedMass
 
-    if int(choice) == 1:
-
-        ######  This is where the thrust is calculated for D12  ######
-      if i >= 0 and i < 0.282/timeStep:
-          thrust = (105.425*(i*timeStep))*numberOfEngines
-      elif i >= 0.282/timeStep and i < 0.386/timeStep:
-          thrust = (76.89-167.54*(i*timeStep))*numberOfEngines
-      elif i >= 0.386/timeStep and i < 1.436/timeStep:
-          thrust = (12.099-0.00567*(i*timeStep))*numberOfEngines
-      elif i >= 1.436/timeStep and i < 1.556/timeStep:
-          thrust = (155.91-100.23*(i*timeStep))*numberOfEngines
+      ### Calculating Thrust from curve ###
+    for j in thrustCurve:
+      if j[0] >= i*timeStep:
+        thrust = (j[1]*(i*timeStep)+j[2])*numberOfEngines
+        break
       else:
-          thrust = 0
-
-
-    elif int(choice) == 2:
-
-        ######  This is where the thrust is calculated for F15  ######
-      if i >= 0 and i < 0.477/timeStep:
-          thrust = (53*(i*timeStep))*numberOfEngines
-      elif i >= 0.477/timeStep and i < 1.503/timeStep:
-          thrust = (  (4*(i*timeStep)-5.1)**2   +15 )*numberOfEngines
-      elif i >= 1.503/timeStep and i < 3.39/timeStep:
-          thrust = (18-1.5*(i*timeStep))*numberOfEngines
-      elif i >= 3.39/timeStep and i < 3.45/timeStep:
-          thrust = (420-120*(i*timeStep))*numberOfEngines
-      else:
-          thrust = 0
-
-    #print(round(thrust,2))
+        thrust = 0
+    
+    #print(thrust)
 
       ######  This is where the drag is calculated  ######
     if distance < 11019.13:

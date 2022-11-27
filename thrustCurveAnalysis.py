@@ -1,7 +1,7 @@
 ###################################################
 #                                                 #
 #   Thrust Curve Finder                           #
-#                                                 #
+#   (NAR Ripper and Excel Hell)                   #
 #                                                 #
 ###################################################
 
@@ -16,11 +16,9 @@ def main(engineType):
     from os.path import exists
     import matplotlib.pyplot as plt
 
-
-
     wb = load_workbook("thrustCurveData.xlsx")
     sheet = wb["Sheet1"]
-    headers = ['EndTime', 'Slope']
+    headers = ['EndTime', 'Slope', 'Intercept']
     sheet.append(headers)
 
     choice = engineType
@@ -66,24 +64,15 @@ def main(engineType):
                 del dataPts[indexCt]
             indexCt += 1
 
-    #print (dataPts)
-
     xVals = []
     yVals = []
+    inters = []
 
     for i in dataPts:
         xVals.append(float(i[0]))
         yVals.append(float(i[1]))
 
-# print(xVals)
-# print(yVals)
-
-    #plt.scatter(xVals, yVals)
-    #plt.xlabel('Time (s)')
-    #plt.ylabel('Thrust (N)')
-    #plt.show()
-
-# xVals.pop(0)
+    xVals.pop(0)
     excelAdd = []
     temp = []
     for i in range(len(xVals)):
@@ -92,12 +81,16 @@ def main(engineType):
             temp.append((yVals[i]-yVals[i-1])/(xVals[i]-xVals[i-1]))
         else:
             temp.append((yVals[i])/(xVals[i]))
+        b = yVals[i] - temp[1]*xVals[i]
+        temp.append(b)
         excelAdd.append(temp)
         temp = []
 
-# append data to excel sheet
+    # append data to excel sheet
     for value in excelAdd:
         sheet.append(value)
 
 
     wb.save("thrustCurveData.xlsx")
+
+    return excelAdd
