@@ -55,6 +55,11 @@ TO USE:
         The simulation is currently limited to engines that have written reports from NAR about the thrust curve. 
         However, thrust vs time data could be imputted into the thrust curve analysis in the future.
 
+    - An alternate method to run the simulation is through a .exe program created by Auto Py To Exe,
+        created by brentvollebregt on GitHub.
+        https://github.com/brentvollebregt/auto-py-to-exe
+        This program is located in the dist folder.
+
 This simulation was created to get rough estimates for design specs for the Florida Tech Rocketry Club rocket.
 
 This folder contains a python program that runs the simulation, as well as an Excel Spreadsheet which contains rudimentary
