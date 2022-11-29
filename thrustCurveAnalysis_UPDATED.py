@@ -35,6 +35,9 @@ def main(engineType):
         except urllib.error.HTTPError:
             print("File not found!")
             exit()
+    
+    
+
     pdfFileObj = open(choice+'.pdf', 'rb')
     pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
     numberOfPages = pdfReader.numPages

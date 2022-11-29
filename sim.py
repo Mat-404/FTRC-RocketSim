@@ -20,12 +20,13 @@ Dims = wb["Volume Calculations"]
 tcd = load_workbook("thrustCurveData.xlsx")
 tcdSheet = tcd["Sheet1"]
 
-saveData = False
+saveData = True
 
 if exists("coconut.jpg"):
 
 
   choice=input("Which engine do you want to use? [1] D12  [2] F15  ")
+  pdfChoice=input("Do you want to use NAR data, or your own? [1] NAR  [2] Own  ")
 
   numberOfEngines = Engines['D2'].value
 
@@ -48,9 +49,6 @@ if exists("coconut.jpg"):
     timeLimit = 12  # seconds
     timeStep = .001  # seconds
     angle = 14.04952  # Angle between edge and center of cone in degrees
-
-#print("Initial Mass: ", round(initialMass, 2), "propellantMass: ",
-#      round(propellantMass, 2), "burnRate: ", round(burnRate, 2))
 
   crossSectionalArea = 3.14*(0.305/2)**2  # m^2
   coeffDrag = 0.0112*angle+0.162  # drag coefficient
@@ -93,8 +91,6 @@ for i in range(0, int(timeLimit/timeStep)):
         break
       else:
         thrust = 0
-    
-    #print(thrust)
 
       ######  This is where the drag is calculated  ######
     if distance < 11019.13:
@@ -115,8 +111,6 @@ for i in range(0, int(timeLimit/timeStep)):
     if distance > maxHeight:
         maxHeight = distance
 
-    #print(round(thrust,2),round(velocity,2))
-
       ######  This is where the data is stored  ######
     time.append(i)
     height.append(distance)
@@ -130,7 +124,6 @@ print("Max Height: ", round(maxHeight, 3), "m",
 
   ##### Plotting #####
 fig, axis = plt.subplots(2,2)
-
 fig.suptitle('Max Height: '+str(round(maxHeight, 3))+'m Max Velocity: '+str(round(maxVel, 3))+'m/s')
 
 axis[0,0].plot(time, height)
@@ -147,5 +140,10 @@ plt.show()
 if saveData == False:
   tcdSheet.delete_cols(1, 1000)
   tcdSheet.delete_rows(1, 1000)
+
+#if choice == 1:
+#  fig.canvas.manager.set_window_title("D12")
+#else:
+#  fig.canvas.manager.set_window_title("F15")
 
 tcd.save("thrustCurveData.xlsx")
