@@ -26,14 +26,14 @@ def main(engineType):
     choice = engineType
     
     if exists(choice + ".pdf"):
-        print("File already exists")
+        print("[THRUSTCURVEANALYSIS] File already exists")
     else:
-        print("Downloading file...")
+        print("[THRUSTCURVEANALYSIS] Downloading file...")
         try:
             urllib.request.urlretrieve(
                 "https://www.nar.org/SandT/pdf/Estes/"+choice+".pdf", choice+".pdf")
         except urllib.error.HTTPError:
-            print("File not found!")
+            print("[THRUSTCURVEANALYSIS] File not found!")
             exit()
     
     

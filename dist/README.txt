@@ -39,21 +39,31 @@
                                                                                 
       &(%#  .#     %#*/   &&&&&. & (%#*#    #.%     /#%%/ ,/&##%  .#%  (,   /,  
       ##,,. .#    %    %  &.,/%, & (,   #  #.,.&      %   ,(.... %/    (/..,(*  
-      &(     &&&&& %&%&   &   #/ & /&&&&  %.    &     &.  .&&&&& .%&&& (#   (#  
+      &(     &&&&  %&%&   &   #/ & /&&&&  %.    &     &.  .&&&&& .%&&& (#   (#  
                                                                                 
-             &&&&&#  (&&&&&* *&&&&# &* ,&# %&&&&& &&&&&&. &&&&&. &.  %&         
+             &&&&&   /&&&&#  /#&&&# &* ,&# %&&&&& &&&&&&. &&&&&. &.  %&         
              #&.,*&  &/   #& &#     &/&(   %.,..    &#    &.,/%, .&%&(          
-             #& .&%  %&%(%&# #&%##( &* /&( %&###(   &#    &   #/    &(           
+             #& .&%   &%(%&  #&%##( &* /&( %&###(   &#    &   #/    &(           
                                                                                 
                                                                                 
 
 TO USE:
+
+    For Dev work:
+
     -Install folder and open in IDE of your choice, preferrably VSCode.
     -Install dependencies as detailed below
     -Run sim.py to start the simulation. You will be asked to choose which engine you want to simulate with.
         Right now, the simulation only uses D12-5 and F15-4 engines.
         The simulation is currently limited to engines that have written reports from NAR about the thrust curve. 
         However, thrust vs time data could be imputted into the thrust curve analysis in the future.
+
+    For use:
+
+    - An alternate method to run the simulation is through a .exe program created by Auto Py To Exe,
+        created by brentvollebregt on GitHub.
+        https://github.com/brentvollebregt/auto-py-to-exe
+        This program is located in the dist folder.
 
 This simulation was created to get rough estimates for design specs for the Florida Tech Rocketry Club rocket.
 
