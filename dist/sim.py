@@ -18,126 +18,113 @@ import matplotlib
 from openpyxl import load_workbook
 from os.path import exists
 
-wb = load_workbook("Mk1 Data Sheet.xlsx")
-Engines = wb["Engines"]
-Dims = wb["Volume Calculations"]
-tcd = load_workbook("thrustCurveData.xlsx")
-tcdSheet = tcd["Sheet1"]
-
-saveData = True
+DataWorkbook = load_workbook("Mk1 Data Sheet.xlsx")
+EngineData = DataWorkbook["Engines"]
 
 if exists("coconut.jpg"):
 
-  # choice=input("Which engine do you want to use? [1] D12  [2] F15  ")
-  #pdfChoice=input("Do you want to use NAR data, or your own? [1] NAR  [2] Own  ")
-
   ## TODO: Add a way to choose between NAR data and own data ##
-
-  # event, values = window.read()
   
-  def calcuateSim(choice):
+  def calcuateSim(EngineChoice, timeStepSeconds, timeLimitSeconds):
 
-    numberOfEngines = Engines['D2'].value
-
-    if choice == "D12":
+    numberOfEngines = EngineData['D2'].value
+    
+    ##  Importing data from spreadsheet ##
+    ##  engine choice corresponds to column in spreadsheet ##
+    if EngineChoice == "D12":
+      columnVar = 'B'
+    elif EngineChoice == "F15":
+      columnVar = 'G'
+    elif EngineChoice == "H13":
+      columnVar = 'K'
 
         ##  Defining variables ##
-      initialMass = (Engines['B11'].value+Engines['B12'].value)*numberOfEngines + Engines['B22'].value + Engines['B21'].value  # kg
-      propellantMass = Engines['B12'].value*numberOfEngines  # kg
-      burnRate = propellantMass / (Engines['B10'].value)  # burnRate in kg/s
-      timeLimit = 12  # seconds
-      timeStep = .001  # seconds
-      angle = 14.04952  # Angle between edge and center of cone in degrees
-
-    elif choice == "F15":
-  
-          ##  Defining variables ##
-      initialMass = (Engines['G11'].value+Engines['G12'].value)*numberOfEngines + Engines['G22'].value + Engines['G21'].value  # kg
-      propellantMass = Engines['G12'].value*numberOfEngines  # kg
-      burnRate = propellantMass / (Engines['G10'].value)  # burnRate in kg/s
-      timeLimit = 12  # seconds
-      timeStep = .001  # seconds
-      angle = 14.04952  # Angle between edge and center of cone in degrees
-
+    initialMassKilograms = (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines 
+    + EngineData[columnVar+'22'].value + EngineData[columnVar+'21'].value  # kg
+    propellantMassKilograms = EngineData[columnVar+'12'].value*numberOfEngines  # kg
+    burnRateKgS = propellantMassKilograms / (EngineData[columnVar+'10'].value)  # burnRate in kg/s
+    angle = 14.04952  # Angle between edge and center of cone in degrees
     crossSectionalArea = 3.14*(0.305/2)**2  # m^2
     coeffDrag = 0.0112*angle+0.162  # drag coefficient
 
     ##   Initializing Arrays   ##
-    time = []
-    Thrust = []
-    accel = []
-    Vel = []
-    height = []
+    timeList = []
+    thrustList = []
+    accelerationList = []
+    velocityList = []
+    altitudeList = []
+    dynamicPressureList = []
+    thrustCurve = []
 
-  ##   Zeroing Variables   ##
+    ##   Zeroing Variables   ##
     burnedMass = 0
-    velocity = 0
-    distance = 0
-    maxHeight = 0
-    maxVel = 0
-    Drag = 0
-    density = 0
-    temperature = 0
-    pressure = 0
-    thrust = 0
+    velocityMetersSquared = 0
+    currentAltitudeMeter = 0
+    dragNewtons = 0
+    densityPascals = 0
+    currentThrustNewtons = 0
 
-    thrustCurve=[]
 
-    thrustCurve = tca.main(choice)
+    thrustCurve = tca.main(EngineChoice)
 
+    
 
     #### Main Loop ####
-    for i in range(0, int(timeLimit/timeStep)):
-      if burnedMass < propellantMass:
-          currentMass = initialMass-burnedMass
+    for i in range(0, int(timeLimitSeconds/timeStepSeconds)):
+      if burnedMass < propellantMassKilograms:
+          currentMass = initialMassKilograms-burnedMass
 
         ### Calculating Thrust from curve ###
       for j in thrustCurve:
-        if j[0] >= i*timeStep:
-          thrust = (j[1]*(i*timeStep)+j[2])*numberOfEngines
+        if j[0] >= i*timeStepSeconds:
+          currentThrustNewtons = (j[1]*(i*timeStepSeconds)+j[2])*numberOfEngines
           break
         else:
-          thrust = 0
+          currentThrustNewtons = 0
+        
 
         ######  This is where the drag is calculated  ######
-      if distance < 11019.13:
+      if currentAltitudeMeter < 11019.13:
           # (Assuming linear density change under 1km)
-          density = 1.225-0.000113*distance
-      Drag = coeffDrag*(density*velocity**2)/2*crossSectionalArea  # Newtons
+          densityPascals = 1.225-(0.000113*currentAltitudeMeter)
+      dragNewtons = coeffDrag*(densityPascals*velocityMetersSquared**2)/2*crossSectionalArea  # Newtons
 
+      dynamicPressureList.append((1/2)*densityPascals*velocityMetersSquared**2)
 
         ######  This is where the kinematics are calculated  ######
-      acceleration = (thrust-Drag)/currentMass-9.8
-      velocity = velocity+acceleration*timeStep
-      distance = distance+velocity*timeStep
-      burnedMass = burnedMass+burnRate*(1*timeStep)
+      acceleration = (currentThrustNewtons-dragNewtons)/currentMass-9.7918
+      velocityMetersSquared = velocityMetersSquared+acceleration*timeStepSeconds
+      currentAltitudeMeter = currentAltitudeMeter+velocityMetersSquared*timeStepSeconds
+      burnedMass = burnedMass+burnRateKgS*(1*timeStepSeconds)
 
       ######  This is where the data is stored  ######
-      time.append(i)
-      height.append(distance)
-      Thrust.append(thrust)
-      Vel.append(velocity)
-      accel.append(acceleration)
-
-    maxVel = max(Vel)
-    maxHeight = max(height)
+      timeList.append(int(i))
+      altitudeList.append(currentAltitudeMeter)
+      thrustList.append(currentThrustNewtons)
+      velocityList.append(velocityMetersSquared)
+      accelerationList.append(acceleration)
     
     ##### Plotting #####
     fig, axis = plt.subplots(2,2)
-    fig.suptitle('Max Height: '+str(round(maxHeight, 3))+'m Max Velocity: '+str(round(maxVel, 3))+'m/s')
-    
-    axis[0,0].plot(time, height)
+    fig.suptitle('Rocket Simulation for '+EngineChoice+' Engine')
+
+    index = altitudeList.index(max(altitudeList))
+    a = len(altitudeList)-index
+    for i in range(0, a):
+      altitudeList.pop()
+      velocityList.pop()
+      accelerationList.pop()
+      timeList.pop()
+      thrustList.pop()
+      dynamicPressureList.pop()
+
+    axis[0,0].plot(timeList, altitudeList)
     axis[0,0].set_title("Height vs Time")
-    axis[0,1].plot(time, Vel)
+    axis[0,1].plot(timeList, velocityList)
     axis[0,1].set_title("Velocity vs Time")
-    axis[1,0].plot(time, Thrust)
+    axis[1,0].plot(timeList, thrustList)
     axis[1,0].set_title("Thrust vs Time")
-    axis[1,1].plot(time, accel)
+    axis[1,1].plot(timeList, accelerationList)
     axis[1,1].set_title("Acceleration vs Time")
     
-    if saveData == False:
-      tcdSheet.delete_cols(1, 1000)
-      tcdSheet.delete_rows(1, 1000)
-      tcd.save("thrustCurveData.xlsx")
-    
-    return maxHeight, maxVel, time, height, Vel, Thrust, accel, fig
+    return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, fig

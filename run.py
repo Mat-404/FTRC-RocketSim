@@ -1,29 +1,80 @@
+    ###################################################
+    #                                                 #
+    #   Boilerplate GUI and User Input                #
+    #                                                 #
+    ###################################################
+
     ##  Importing libraries and spreadsheet ##
 import sim as sim
 import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 import os
 import sys
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import ImageGrab
 
-sg.theme('DarkBrown5')   # Add a touch of color
+matplotlib.rcParams['text.color'] = '#F6C350'
+matplotlib.rcParams['axes.labelcolor'] = '#F6C350'
+matplotlib.rcParams['xtick.color'] = '#F6C350'
+matplotlib.rcParams['ytick.color'] = '#F6C350'
+
+sg.theme('DarkBrown5')   # Add that fresh Florida Tech color scheme
 
 matplotlib.use('TkAgg')
 
    ##  Setting up GUI ##
 window1 = sg.Window(title="FTRC Rocketry Sim", 
-        layout=[[sg.Text("Choose which engine you want to use")],
-        [sg.Button("D12")],[sg.Button("F15")], [sg.Canvas(key="-CANVAS")]], margins=(200, 50))
+        layout=[[sg.Text("Welcome to the FTRC Rocket Simulator!")],
+            [sg.Text("This is a work in progress, so please be patient.")],
+            [sg.Text("Choose which engine you want to use:")],
+            [sg.Button("D12"), sg.Button("F15"), sg.Button("H13")], 
+            [sg.Text("\n")],
+            [sg.Text("\n")],
+            [sg.Button("Edit Rocket Data Sheet", key="editData")],
+            [sg.Button("Edit Engine Database", key="editEngine")]
+            ], margins=(200, 50), finalize=True)
+
+window1.force_focus()
 
 event, values = window1.read()
-print(event)
 
-simResults = sim.calcuateSim(event)
-fig = simResults[7]
-maxHeight = str(simResults[0])
-maxVelocity = str(simResults[1])
+if event == "editData":
+    os.startfile("Mk1 Data Sheet.xlsx")
+    window1.close()
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
+if event == "editEngine":
+    os.startfile("EngineDataSheet.xlsx")
+    window1.close()
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
+if event == "D12" or event == "F15":
+    timeLimitSeconds = 10  # seconds
+    timeStepSeconds = .001  # seconds
+elif event == "H13":
+    timeLimitSeconds = 30  # seconds
+    timeStepSeconds = .001  # seconds
+elif event == sg.WIN_CLOSED:
+    window1.close()
+    sys.exit()
+
+simResults = sim.calcuateSim(event, timeStepSeconds, timeLimitSeconds)
+fig = simResults[-1]
+fig.set_edgecolor('#F6C370')
+fig.set_facecolor('#3C1B1F')
+fig.tight_layout()
+
+timeValues = simResults[0]
+heightValues = simResults[1]
+
+maxHeight = round(max(simResults[1]),3)
+maxHeightTime = heightValues.index(max(simResults[1]))/1000
+maxVelocity = round(max(simResults[2]),3)
+maxThrust = str(round(max(simResults[3]),3))
+maxAcceleration = str(round(max(simResults[4]),3))
+maxQ = str(round(max(simResults[5]),3))
 
 window1.close()
 
@@ -35,19 +86,23 @@ def draw_figure(canvas, figure):
 
 column_1=[[sg.Canvas(key='-CANVAS2')]]
 
-column_2=[[sg.Text("Maximum Velocity: " + maxVelocity)],
-            [sg.Text("Maximum Height: " + maxHeight)],
+column_2=[[sg.Text("Maximum Velocity: " + str(maxVelocity)+ " m/s")],
+            [sg.Text("Maximum Height: " + str(maxHeight)+ " m")],
+            [sg.Text("Time to peak: " + str(maxHeightTime)+ " s")],
+            [sg.Text("Maximum Thrust: " + maxThrust + " N")],
+            [sg.Text("Maximum Acceleration: " + maxAcceleration+ " m/s^2")],
+            [sg.Text("Maximum Dynamic Pressure: " + maxQ+ " N/m^2")],
+            [sg.Text("Maximum Mach Number: " + str(round(maxVelocity/343,3)))],
             [sg.Button('Reset', size=(14, 1))]]
 
 layout = [[sg.Column(column_1),
            sg.Column(column_2)],]
 
-window2 = sg.Window("FTRC Rocketry Sim", layout, margins=(200, 50), finalize=True)
+window2 = sg.Window("FTRC Rocketry Sim", layout, finalize=True)
 
 fig_canvas_agg = draw_figure(window2["-CANVAS2"].TKCanvas, fig)
 
 event, values = window2.read()
-print(event)
 
 if event == "Reset":
     os.execl(sys.executable, sys.executable, *sys.argv)
