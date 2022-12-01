@@ -24,17 +24,25 @@ sg.theme('DarkBrown5')   # Add that fresh Florida Tech color scheme
 
 matplotlib.use('TkAgg')
 
+def sysRestart():
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
    ##  Setting up GUI ##
-window1 = sg.Window(title="FTRC Rocketry Sim", 
-        layout=[[sg.Text("Welcome to the FTRC Rocket Simulator!")],
+
+column_1 = [[sg.Image(filename = 'Rocketry_Club_Logo.png', key='-IMAGE-')]]
+column_2 = [[sg.Text("Welcome to the FTRC Rocket Simulator!")],
             [sg.Text("This is a work in progress, so please be patient.")],
             [sg.Text("Choose which engine you want to use:")],
             [sg.Button("D12"), sg.Button("F15"), sg.Button("H13")], 
-            [sg.Text("\n")],
-            [sg.Text("\n")],
+            [sg.Text("Payload Mass (Kg): "), sg.InputText()],
+            [sg.Text("Number of Engines: "), sg.InputText()],
             [sg.Button("Edit Rocket Data Sheet", key="editData")],
-            [sg.Button("Edit Engine Database", key="editEngine")]
-            ], margins=(200, 50), finalize=True)
+            [sg.Button("Edit Engine Database", key="editEngine")]]
+
+layout = [[sg.Column(column_1),
+           sg.Column(column_2)]]
+
+window1 = sg.Window("FTRC Rocketry Sim", layout, finalize=True)
 
 window1.force_focus()
 
@@ -43,12 +51,12 @@ event, values = window1.read()
 if event == "editData":
     os.startfile("Mk1 Data Sheet.xlsx")
     window1.close()
-    os.execl(sys.executable, sys.executable, *sys.argv)
+    sysRestart()
 
 if event == "editEngine":
     os.startfile("EngineDataSheet.xlsx")
     window1.close()
-    os.execl(sys.executable, sys.executable, *sys.argv)
+    sysRestart()
 
 if event == "D12" or event == "F15":
     timeLimitSeconds = 10  # seconds
@@ -60,7 +68,14 @@ elif event == sg.WIN_CLOSED:
     window1.close()
     sys.exit()
 
-simResults = sim.calcuateSim(event, timeStepSeconds, timeLimitSeconds)
+if (values[0].isalpha() or float(values[0]) < 0):
+    sg.popup("Please enter a valid payload mass")
+    sysRestart()
+if (values[1].isalpha() or int(values[1]) <= 0):
+    sg.popup("Please enter a valid number of engines")
+    sysRestart()
+
+simResults = sim.calculateSim(event, timeStepSeconds, timeLimitSeconds, float(values[0]), float(values[1]))
 fig = simResults[-1]
 fig.set_edgecolor('#F6C370')
 fig.set_facecolor('#3C1B1F')
@@ -96,7 +111,7 @@ column_2=[[sg.Text("Maximum Velocity: " + str(maxVelocity)+ " m/s")],
             [sg.Button('Reset', size=(14, 1))]]
 
 layout = [[sg.Column(column_1),
-           sg.Column(column_2)],]
+           sg.Column(column_2)]]
 
 window2 = sg.Window("FTRC Rocketry Sim", layout, finalize=True)
 
@@ -105,4 +120,4 @@ fig_canvas_agg = draw_figure(window2["-CANVAS2"].TKCanvas, fig)
 event, values = window2.read()
 
 if event == "Reset":
-    os.execl(sys.executable, sys.executable, *sys.argv)
+    sysRestart()

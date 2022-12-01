@@ -25,9 +25,7 @@ if exists("coconut.jpg"):
 
   ## TODO: Add a way to choose between NAR data and own data ##
   
-  def calcuateSim(EngineChoice, timeStepSeconds, timeLimitSeconds):
-
-    numberOfEngines = EngineData['D2'].value
+  def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines):
     
     ##  Importing data from spreadsheet ##
     ##  engine choice corresponds to column in spreadsheet ##
@@ -39,8 +37,7 @@ if exists("coconut.jpg"):
       columnVar = 'K'
 
         ##  Defining variables ##
-    initialMassKilograms = (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines 
-    + EngineData[columnVar+'22'].value + EngineData[columnVar+'21'].value  # kg
+    initialMassKilograms = (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines + payloadMass + EngineData[columnVar+'21'].value  # kg
     propellantMassKilograms = EngineData[columnVar+'12'].value*numberOfEngines  # kg
     burnRateKgS = propellantMassKilograms / (EngineData[columnVar+'10'].value)  # burnRate in kg/s
     angle = 14.04952  # Angle between edge and center of cone in degrees
@@ -106,7 +103,7 @@ if exists("coconut.jpg"):
     
     ##### Plotting #####
     fig, axis = plt.subplots(2,2)
-    fig.suptitle('Rocket Simulation for '+EngineChoice+' Engine')
+    fig.suptitle('Rocket Simulation for '+str(numberOfEngines)+" "+EngineChoice+' Engines\n and a payload of '+str(payloadMass)+' kg')
 
     index = altitudeList.index(max(altitudeList))
     a = len(altitudeList)-index
