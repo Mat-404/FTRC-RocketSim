@@ -103,7 +103,7 @@ if exists("coconut.jpg"):
     
     ##### Plotting #####
     fig, axis = plt.subplots(2,2)
-    fig.suptitle('Rocket Simulation for '+str(numberOfEngines)+" "+EngineChoice+' Engines\n and a payload of '+str(payloadMass)+' kg')
+    fig.suptitle('Rocket Simulation for '+str(int(numberOfEngines))+" "+EngineChoice+' Engines\n and a payload of '+str(payloadMass)+' kg')
 
     index = altitudeList.index(max(altitudeList))
     a = len(altitudeList)-index
