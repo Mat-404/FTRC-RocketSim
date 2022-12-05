@@ -1,8 +1,8 @@
-    ###################################################
-    #                                                 #
-    #   Boilerplate GUI and User Input                #
-    #                                                 #
-    ###################################################
+###################################################
+#                                                 #
+#   Boilerplate GUI and User Input                #
+#                                                 #
+###################################################
 
     ##  Importing libraries and spreadsheet ##
 import sim as sim
@@ -67,9 +67,13 @@ elif event == "F15":
     timeStepSeconds = .001  # seconds
     maxThrust = 25.26  # Newtons
 elif event == "H13":
-    timeLimitSeconds = 30  # seconds
+    timeLimitSeconds = 45  # seconds
     timeStepSeconds = .001  # seconds
     maxThrust = 43.5  # Newtons
+elif event == "E12":
+    timeLimitSeconds = 10  # seconds
+    timeStepSeconds = .001 # seconds
+    maxThrust = 30.6 # Newtons
 elif event == sg.WIN_CLOSED:
     window1.close()
     sys.exit()
@@ -81,8 +85,6 @@ if (values[0].isalpha() or float(values[0]) < 0):
 if (values[1].isalpha() or int(values[1]) <= 0):
     sg.popup("Please enter a valid number of engines")
     sysRestart()
-
-#TODO: if TWR < 1, popup warning
 
 initialMass = sim.getInitialMass(event, float(values[0]), int(values[1]))
 if ((maxThrust*float(values[1]))/(initialMass*9.81) < 1):
@@ -115,13 +117,13 @@ def draw_figure(canvas, figure):
 
 column_1=[[sg.Canvas(key='-CANVAS2')]]
 
-column_2=[[sg.Text("Maximum Velocity: " + str(maxVelocity)+ " m/s")],
-            [sg.Text("Maximum Height: " + str(maxHeight)+ " m")],
-            [sg.Text("Time to peak: " + str(maxHeightTime)+ " s")],
-            [sg.Text("Maximum Thrust: " + maxThrust + " N")],
-            [sg.Text("Maximum Acceleration: " + maxAcceleration+ " m/s^2")],
-            [sg.Text("Maximum Dynamic Pressure: " + maxQ+ " N/m^2")],
-            [sg.Text("Maximum Mach Number: " + str(round(maxVelocity/343,3)))],
+column_2=[[sg.Text(f"Maximum Velocity: {str(maxVelocity)} m/s")],
+            [sg.Text(f"Maximum Height: {str(maxHeight)} m")],
+            [sg.Text(f"Time to peak: {str(maxHeightTime)} s")],
+            [sg.Text(f"Maximum Thrust: {maxThrust} N")],
+            [sg.Text(f"Maximum Acceleration: {maxAcceleration} m/s^2")],
+            [sg.Text(f"Maximum Dynamic Pressure: {maxQ} N/m^2")],
+            [sg.Text(f"Maximum Mach Number: {str(round(maxVelocity/343,3))}")],
             [sg.Button('Reset', size=(14, 1))]]
 
 layout = [[sg.Column(column_1),

@@ -23,28 +23,30 @@ EngineData = DataWorkbook["Engines"]
 
 if exists("coconut.jpg"):
 
-  def getInitialMass(EngineChoice, numberOfEngines, payloadMass):
+  columnVar = ''
+
+  def assignDataVariables(EngineChoice):
     if EngineChoice == "D12":
       columnVar = 'B'
     elif EngineChoice == "F15":
       columnVar = 'G'
     elif EngineChoice == "H13":
       columnVar = 'K'
+    elif EngineChoice == "E12":
+      columnVar = 'O'
+    return columnVar
+
+  def getInitialMass(EngineChoice, numberOfEngines, payloadMass):
+    columnVar = assignDataVariables(EngineChoice)
     return (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines + payloadMass + EngineData[columnVar+'21'].value  # kg
   
   def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines):
     
     ##  Importing data from spreadsheet ##
     ##  engine choice corresponds to column in spreadsheet ##
-    if EngineChoice == "D12":
-      columnVar = 'B'
-    elif EngineChoice == "F15":
-      columnVar = 'G'
-    elif EngineChoice == "H13":
-      columnVar = 'K'
+    columnVar = assignDataVariables(EngineChoice)
 
-        ##  Defining variables ##
-    initialMassKilograms = (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines + payloadMass + EngineData[columnVar+'21'].value  # kg
+    initialMassKilograms = getInitialMass(EngineChoice, numberOfEngines, payloadMass)  # kg
     propellantMassKilograms = EngineData[columnVar+'12'].value*numberOfEngines  # kg
     burnRateKgS = propellantMassKilograms / (EngineData[columnVar+'10'].value)  # burnRate in kg/s
     angle = 14.04952  # Angle between edge and center of cone in degrees
@@ -78,6 +80,13 @@ if exists("coconut.jpg"):
       if burnedMass < propellantMassKilograms:
           currentMass = initialMassKilograms-burnedMass
 
+      if (i < 1):
+        if currentAltitudeMeter < 0:
+          currentAltitudeMeter = 0
+
+      if currentAltitudeMeter < -300:
+        break
+
         ### Calculating Thrust from curve ###
       for j in thrustCurve:
         if j[0] >= i*timeStepSeconds:
@@ -86,12 +95,19 @@ if exists("coconut.jpg"):
         else:
           currentThrustNewtons = 0
         
-
+        ## TODO: Fix Overflow error ##
         ######  This is where the drag is calculated  ######
       if currentAltitudeMeter < 11019.13:
           # (Assuming linear density change under 1km)
-          densityPascals = 1.225-(0.000113*currentAltitudeMeter)
+          try: densityPascals = 1.225-(0.000113*currentAltitudeMeter)
+          except OverflowError:
+            densityPascals = 0
+          #finally:
+            #print (f"Overflow Error Log, time at {i*timeStepSeconds} seconds")
+            #print (f"Current Altitude: {currentAltitudeMeter}")
       dragNewtons = coeffDrag*(densityPascals*velocityMetersSquared**2)/2*crossSectionalArea  # Newtons
+
+
 
       dynamicPressureList.append((1/2)*densityPascals*velocityMetersSquared**2)
 
@@ -110,11 +126,11 @@ if exists("coconut.jpg"):
     
     ##### Plotting #####
     fig, axis = plt.subplots(2,2)
-    fig.suptitle('Rocket Simulation for '+str(int(numberOfEngines))+" "+EngineChoice+' Engines\n and a payload of '+str(payloadMass)+' kg')
+    fig.suptitle(f'Rocket Simulation for {str(int(numberOfEngines))} {EngineChoice} Engines\n and a payload of {str(payloadMass)} kg')
 
-    index = altitudeList.index(max(altitudeList))
-    a = len(altitudeList)-index
-    for i in range(0, a):
+    ## Remove entries after a time length after maximum height ##
+    
+    for i in range(0, round(len(altitudeList)-(altitudeList.index(max(altitudeList)))*1.3 )):
       altitudeList.pop()
       velocityList.pop()
       accelerationList.pop()
