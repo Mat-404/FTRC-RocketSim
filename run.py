@@ -33,7 +33,7 @@ column_1 = [[sg.Image(filename = 'Rocketry_Club_Logo.png', key='-IMAGE-')]]
 column_2 = [[sg.Text("Welcome to the FTRC Rocket Simulator!")],
             [sg.Text("This is a work in progress, so please be patient.")],
             [sg.Text("Choose which engine you want to use:")],
-            [sg.Button("D12"), sg.Button("F15"), sg.Button("H13")], 
+            [sg.Button("D12"), sg.Button("F15"), sg.Button("H13"), sg.Button("E12")], 
             [sg.Text("Payload Mass (Kg): "), sg.InputText()],
             [sg.Text("Number of Engines: "), sg.InputText()],
             [sg.Button("Edit Rocket Data Sheet", key="editData")],
@@ -48,31 +48,45 @@ window1.force_focus()
 
 event, values = window1.read()
 
+maxThrust = 0
+
 if event == "editData":
     os.startfile("Mk1 Data Sheet.xlsx")
     window1.close()
     sysRestart()
-
-if event == "editEngine":
+elif event == "editEngine":
     os.startfile("EngineDataSheet.xlsx")
     window1.close()
     sysRestart()
-
-if event == "D12" or event == "F15":
+elif event == "D12":
     timeLimitSeconds = 10  # seconds
     timeStepSeconds = .001  # seconds
+    maxThrust = 32.9  # Newtons
+elif event == "F15":
+    timeLimitSeconds = 10  # seconds
+    timeStepSeconds = .001  # seconds
+    maxThrust = 25.26  # Newtons
 elif event == "H13":
     timeLimitSeconds = 30  # seconds
     timeStepSeconds = .001  # seconds
+    maxThrust = 43.5  # Newtons
 elif event == sg.WIN_CLOSED:
     window1.close()
     sys.exit()
+
 
 if (values[0].isalpha() or float(values[0]) < 0):
     sg.popup("Please enter a valid payload mass")
     sysRestart()
 if (values[1].isalpha() or int(values[1]) <= 0):
     sg.popup("Please enter a valid number of engines")
+    sysRestart()
+
+#TODO: if TWR < 1, popup warning
+
+initialMass = sim.getInitialMass(event, float(values[0]), int(values[1]))
+if ((maxThrust*float(values[1]))/(initialMass*9.81) < 1):
+    sg.popup("Warning: TWR < 1")
     sysRestart()
 
 simResults = sim.calculateSim(event, timeStepSeconds, timeLimitSeconds, float(values[0]), float(values[1]))

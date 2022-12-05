@@ -23,7 +23,14 @@ EngineData = DataWorkbook["Engines"]
 
 if exists("coconut.jpg"):
 
-  ## TODO: Add a way to choose between NAR data and own data ##
+  def getInitialMass(EngineChoice, numberOfEngines, payloadMass):
+    if EngineChoice == "D12":
+      columnVar = 'B'
+    elif EngineChoice == "F15":
+      columnVar = 'G'
+    elif EngineChoice == "H13":
+      columnVar = 'K'
+    return (EngineData[columnVar+'11'].value+EngineData[columnVar+'12'].value)*numberOfEngines + payloadMass + EngineData[columnVar+'21'].value  # kg
   
   def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines):
     
