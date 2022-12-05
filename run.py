@@ -13,7 +13,7 @@ import matplotlib
 import os
 import sys
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from PIL import ImageGrab
+
 
 matplotlib.rcParams['text.color'] = '#F6C350'
 matplotlib.rcParams['axes.labelcolor'] = '#F6C350'
@@ -34,21 +34,25 @@ column_2 = [[sg.Text("Welcome to the FTRC Rocket Simulator!")],
             [sg.Text("This is a work in progress, so please be patient.")],
             [sg.Text("Choose which engine you want to use:")],
             [sg.Button("D12"), sg.Button("F15"), sg.Button("H13"), sg.Button("E12")], 
-            [sg.Text("Payload Mass (Kg): "), sg.InputText()],
-            [sg.Text("Number of Engines: "), sg.InputText()],
+            [sg.Text("Payload Mass (Kg): "), sg.InputText(size=(15,1)), sg.Text("Pitch Angle (Deg): "), sg.InputText(size=(17,1))],
+            [sg.Text("Number of Engines: "), sg.InputText(size=(15,1)), sg.Text("Azimuth Angle (Deg): "), sg.InputText(size=(15,1))],
             [sg.Button("Edit Rocket Data Sheet", key="editData")],
             [sg.Button("Edit Engine Database", key="editEngine")]]
 
 layout = [[sg.Column(column_1),
            sg.Column(column_2)]]
 
-window1 = sg.Window("FTRC Rocketry Sim", layout, finalize=True)
+window1 = sg.Window('FTRC Rocket Simulator', layout, finalize=True)
 
 window1.force_focus()
 
 event, values = window1.read()
-
 maxThrust = 0
+
+payloadMass=values[0]
+pitchAngle=values[1]
+numberOfEngines=values[2]
+azimuthAngle=values[3]
 
 if event == "editData":
     os.startfile("Mk1 Data Sheet.xlsx")
@@ -79,10 +83,10 @@ elif event == sg.WIN_CLOSED:
     sys.exit()
 
 
-if (values[0].isalpha() or float(values[0]) < 0):
+if (payloadMass.isalpha() or float(payloadMass) < 0):
     sg.popup("Please enter a valid payload mass")
     sysRestart()
-if (values[1].isalpha() or int(values[1]) <= 0):
+if (numberOfEngines.isalpha() or int(numberOfEngines) <= 0):
     sg.popup("Please enter a valid number of engines")
     sysRestart()
 
@@ -91,7 +95,7 @@ if ((maxThrust*float(values[1]))/(initialMass*9.81) < 1):
     sg.popup("Warning: TWR < 1")
     sysRestart()
 
-simResults = sim.calculateSim(event, timeStepSeconds, timeLimitSeconds, float(values[0]), float(values[1]))
+simResults = sim.calculateSim(event, timeStepSeconds, timeLimitSeconds, float(payloadMass), float(numberOfEngines), float(pitchAngle), float(azimuthAngle))
 fig = simResults[-1]
 
 timeValues = simResults[0]
