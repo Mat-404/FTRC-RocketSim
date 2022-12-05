@@ -93,9 +93,6 @@ if ((maxThrust*float(values[1]))/(initialMass*9.81) < 1):
 
 simResults = sim.calculateSim(event, timeStepSeconds, timeLimitSeconds, float(values[0]), float(values[1]))
 fig = simResults[-1]
-fig.set_edgecolor('#F6C370')
-fig.set_facecolor('#3C1B1F')
-fig.tight_layout()
 
 timeValues = simResults[0]
 heightValues = simResults[1]
