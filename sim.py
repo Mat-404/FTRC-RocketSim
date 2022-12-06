@@ -37,11 +37,17 @@ if exists("coconut.jpg"):
   def divideTuple(tuple1, scalar):
     return tuple(map(lambda x: x/scalar, tuple1))
   
-  def getMagnitude(tuple1):
-    return math.sqrt(tuple1[0]**2+tuple1[1]**2+tuple1[2]**2)
+  def getMagnitude(tuple1, timeStep, timeLimit):
+    temp = 0
+    try: temp = math.sqrt(tuple1[0]**2+tuple1[1]**2+tuple1[2]**2)
+    except: 
+      print(f"Overflow error at t={timeStep }s")
+      print(f"Tuple: {tuple1}")
+    return temp
   
   def getThreeDimensionalSlope(tuple1, tuple2):
-    return divideTuple(addTuple(tuple1, tuple2), 2)
+    temp = math.sqrt((tuple1[0]-tuple2[0])**2+(tuple1[1]-tuple2[1])**2+(tuple1[2]-tuple2[2])**2)
+    return (divideTuple((tuple1[0]-tuple2[0],tuple1[1]-tuple2[1],tuple1[2]-tuple2[2]),temp))
 
   def assignDataVariables(EngineChoice):
     if EngineChoice == "D12":
@@ -78,18 +84,34 @@ if exists("coconut.jpg"):
 
     return fig
 
-  def createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList):
+  def createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, positionPoints):
     fig = plt.figure(facecolor='#390505')
     ax = plt.axes(projection='3d')
     xVals = []
     yVals = []
-    for i in range (0,len(altitudeList)):
-      xVals.append(0)
-      yVals.append(0)
-    ax.plot3D(xVals, yVals, altitudeList)
+    zVals = []
+    xLand = 0
+    yLand = 0
+    for i in positionPoints:
+      xVals.append(i[0])
+      yVals.append(i[1])
+      zVals.append(i[2])
+    
+    # remove points that have a zValue less than 0
+    for i in range(len(zVals)):
+      if zVals[i] < 0 and i > 1000:
+        xVals = xVals[:i]
+        yVals = yVals[:i]
+        zVals = zVals[:i]
+        xLand = xVals[-1]
+        yLand = yVals[-1]
+        break
+
+
+    ax.plot3D(xVals, yVals, zVals)
     ax.set_title(f'Rocket Simulation for {str(int(numberOfEngines))} {EngineChoice} Engines\n and a payload of {str(payloadMass)} kg')
 
-    return fig
+    return fig, xLand, yLand
 
   def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines, pitchAngle, azimuthAngle):
     
@@ -116,17 +138,17 @@ if exists("coconut.jpg"):
     altitudeList = []
     dynamicPressureList = []
     thrustCurve = []
+    positionPoints = []
 
     ##   Zeroing Variables   ##
     burnedMass = 0
     dragNewtons = 0
     densityPascals = 0
     positionTuple = (0,0,0)
-    orientationTuple = (math.cos(pitchAngle)*math.cos(azimuthAngle), math.cos(pitchAngle)*math.sin(azimuthAngle), math.sin(pitchAngle))
+    orientationTuple = (math.cos(math.radians(pitchAngle))*math.cos(math.radians(azimuthAngle)), math.cos(math.radians(pitchAngle))*math.sin(math.radians(azimuthAngle)), math.sin(math.radians(pitchAngle)))
     thrustTuple = (0,0,0)
     accelerationTuple = (0,0,0)
     velocityTuple = (0,0,0)
-    previousPositionTuple = (0,0,0)
     
 
     pitchAngle = math.radians(pitchAngle)
@@ -168,11 +190,11 @@ if exists("coconut.jpg"):
           #finally:
             #print (f"Overflow Error Log, time at {i*timeStepSeconds} seconds")
             #print (f"Current Altitude: {currentAltitudeMeter}")
-      dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple)**2)/2*crossSectionalArea  # Newtons
+      dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds)**2)/2*crossSectionalArea  # Newtons
 
       dragTuple = multiplyTuple(multiplyTuple(orientationTuple,-1), dragNewtons)
 
-      dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple)**2)
+      dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds)**2)
 
         ######  This is where the kinematics are calculated  ######
       #acceleration = (currentThrustNewtons-dragNewtons)/currentMass-9.7918
@@ -194,17 +216,19 @@ if exists("coconut.jpg"):
       ######  This is where the data is stored  ######
       timeList.append(int(i))
       altitudeList.append(positionTuple[2])
-      thrustList.append(getMagnitude(thrustTuple))
-      velocityList.append(getMagnitude(velocityTuple))
-      accelerationList.append(getMagnitude(accelerationTuple))
+      thrustList.append(getMagnitude(thrustTuple, timeStepSeconds, timeLimitSeconds))
+      velocityList.append(getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds))
+      accelerationList.append(getMagnitude(accelerationTuple, timeStepSeconds, timeLimitSeconds))
+      positionPoints.append(positionTuple)
+
+      orientationTuple = addTuple(orientationTuple,(0,0,0.0001))
       
-      previousPositionTuple = positionTuple
       
-      orientationTuple = getThreeDimensionalSlope(previousPositionTuple, positionTuple)
+      
       
     
     ## Remove entries after a time length after maximum height ##
-    
+    """
     for i in range(0, round(len(altitudeList)-(altitudeList.index(max(altitudeList)))*1.3 )):
       altitudeList.pop()
       velocityList.pop()
@@ -212,13 +236,18 @@ if exists("coconut.jpg"):
       timeList.pop()
       thrustList.pop()
       dynamicPressureList.pop()
-
+    """
     figType = "3D"
 
     if figType == "2D":
       fig = createTwoDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList)
+      xLand = ''
+      yLand = ''
     elif figType == "3D":
-      fig = createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList)
+      output = createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, positionPoints)
+      fig = output[0]
+      xLand = output[1]
+      yLand = output[2]
 
 
-    return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, fig
+    return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, xLand, yLand, fig

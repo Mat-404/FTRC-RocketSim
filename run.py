@@ -67,15 +67,15 @@ elif event == "D12":
     timeStepSeconds = .001  # seconds
     maxThrust = 32.9  # Newtons
 elif event == "F15":
-    timeLimitSeconds = 10  # seconds
+    timeLimitSeconds = 20  # seconds
     timeStepSeconds = .001  # seconds
     maxThrust = 25.26  # Newtons
 elif event == "H13":
-    timeLimitSeconds = 45  # seconds
+    timeLimitSeconds = 30  # seconds
     timeStepSeconds = .001  # seconds
     maxThrust = 43.5  # Newtons
 elif event == "E12":
-    timeLimitSeconds = 10  # seconds
+    timeLimitSeconds = 7  # seconds
     timeStepSeconds = .001 # seconds
     maxThrust = 30.6 # Newtons
 elif event == sg.WIN_CLOSED:
@@ -108,6 +108,9 @@ maxThrust = str(round(max(simResults[3]),3))
 maxAcceleration = str(round(max(simResults[4]),3))
 maxQ = str(round(max(simResults[5]),3))
 
+xLand = simResults[-3]
+yLand = simResults[-2]
+
 window1.close()
 
 def draw_figure(canvas, figure):
@@ -118,7 +121,10 @@ def draw_figure(canvas, figure):
 
 column_1=[[sg.Canvas(key='-CANVAS2')]]
 
-column_2=[[sg.Text(f"Maximum Velocity: {str(maxVelocity)} m/s")],
+column_2=[[sg.Text(f"Launch Pitch: {str(pitchAngle)} deg")],
+            [sg.Text(f"Launch Azimuth: {str(azimuthAngle)} deg")],
+            [sg.Text(f"Landing Point: {str(round(xLand,3))} m, {str(round(yLand,3))} m")],
+            [sg.Text(f"Maximum Velocity: {str(maxVelocity)} m/s")],
             [sg.Text(f"Maximum Height: {str(maxHeight)} m")],
             [sg.Text(f"Time to peak: {str(maxHeightTime)} s")],
             [sg.Text(f"Maximum Thrust: {maxThrust} N")],
