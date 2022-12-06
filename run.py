@@ -67,7 +67,7 @@ elif event == "D12":
     timeStepSeconds = .001  # seconds
     maxThrust = 32.9  # Newtons
 elif event == "F15":
-    timeLimitSeconds = 20  # seconds
+    timeLimitSeconds = 8.6  # seconds
     timeStepSeconds = .001  # seconds
     maxThrust = 25.26  # Newtons
 elif event == "H13":

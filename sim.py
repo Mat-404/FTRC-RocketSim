@@ -37,11 +37,11 @@ if exists("coconut.jpg"):
   def divideTuple(tuple1, scalar):
     return tuple(map(lambda x: x/scalar, tuple1))
   
-  def getMagnitude(tuple1, timeStep, timeLimit):
+  def getMagnitude(tuple1, timeStep, time):
     temp = 0
     try: temp = math.sqrt(tuple1[0]**2+tuple1[1]**2+tuple1[2]**2)
     except: 
-      print(f"Overflow error at t={timeStep }s")
+      print(f"Overflow error at t={timeStep*time}s")
       print(f"Tuple: {tuple1}")
     return temp
   
@@ -163,7 +163,7 @@ if exists("coconut.jpg"):
 
       if orientationTuple[2] < 0 and i < 1:
         orientationTuple[2] = 0
-        break
+        
       
       if positionTuple[2] < 0:
         positionTuple = (positionTuple[0], positionTuple[1], 0)
@@ -190,11 +190,11 @@ if exists("coconut.jpg"):
           #finally:
             #print (f"Overflow Error Log, time at {i*timeStepSeconds} seconds")
             #print (f"Current Altitude: {currentAltitudeMeter}")
-      dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds)**2)/2*crossSectionalArea  # Newtons
+      dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)/2*crossSectionalArea  # Newtons
 
       dragTuple = multiplyTuple(multiplyTuple(orientationTuple,-1), dragNewtons)
 
-      dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds)**2)
+      dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)
 
         ######  This is where the kinematics are calculated  ######
       #acceleration = (currentThrustNewtons-dragNewtons)/currentMass-9.7918
@@ -216,27 +216,13 @@ if exists("coconut.jpg"):
       ######  This is where the data is stored  ######
       timeList.append(int(i))
       altitudeList.append(positionTuple[2])
-      thrustList.append(getMagnitude(thrustTuple, timeStepSeconds, timeLimitSeconds))
-      velocityList.append(getMagnitude(velocityTuple, timeStepSeconds, timeLimitSeconds))
-      accelerationList.append(getMagnitude(accelerationTuple, timeStepSeconds, timeLimitSeconds))
+      thrustList.append(getMagnitude(thrustTuple, timeStepSeconds, i))
+      velocityList.append(getMagnitude(velocityTuple, timeStepSeconds, i))
+      accelerationList.append(getMagnitude(accelerationTuple, timeStepSeconds, i))
       positionPoints.append(positionTuple)
 
       orientationTuple = addTuple(orientationTuple,(0,0,0.0001))
       
-      
-      
-      
-    
-    ## Remove entries after a time length after maximum height ##
-    """
-    for i in range(0, round(len(altitudeList)-(altitudeList.index(max(altitudeList)))*1.3 )):
-      altitudeList.pop()
-      velocityList.pop()
-      accelerationList.pop()
-      timeList.pop()
-      thrustList.pop()
-      dynamicPressureList.pop()
-    """
     figType = "3D"
 
     if figType == "2D":
