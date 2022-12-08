@@ -44,7 +44,20 @@ if exists("coconut.jpg"):
       print(f"Overflow error at t={timeStep*time}s")
       print(f"Tuple: {tuple1}")
     return temp
-  
+
+  def getOrientation(tuple1, tuple2, timeStep, time):
+    try: a = math.sqrt((tuple2[0]-tuple1[0])**2+(tuple2[1]-tuple1[1])**2+(tuple2[2]-tuple1[2])**2)
+    except: 
+      print(f"Overflow error at t={timeStep*time}s")
+      print(f"Tuple: {tuple1}")
+      a = 0
+    b = (abs(tuple2[0]-tuple1[0]), abs(tuple2[1]-tuple1[1]), abs(tuple2[2]-tuple1[2]))
+    return divideTuple(b,a)
+
+  def getUnitVector(tuple):
+    a = math.sqrt(tuple[0]**2+tuple[1]**2+tuple[2]**2)
+    return (tuple[0]/a, tuple[1]/a, tuple[2]/a)
+
   def getThreeDimensionalSlope(tuple1, tuple2):
     temp = math.sqrt((tuple1[0]-tuple2[0])**2+(tuple1[1]-tuple2[1])**2+(tuple1[2]-tuple2[2])**2)
     return (divideTuple((tuple1[0]-tuple2[0],tuple1[1]-tuple2[1],tuple1[2]-tuple2[2]),temp))
@@ -107,7 +120,6 @@ if exists("coconut.jpg"):
         yLand = yVals[-1]
         break
 
-
     ax.plot3D(xVals, yVals, zVals)
     ax.set_title(f'Rocket Simulation for {str(int(numberOfEngines))} {EngineChoice} Engines\n and a payload of {str(payloadMass)} kg')
 
@@ -126,10 +138,6 @@ if exists("coconut.jpg"):
     crossSectionalArea = 3.14*(0.305/2)**2  # m^2
     coeffDrag = 0.0112*angle+0.162  # drag coefficient
 
-
-
-
-
     ##   Initializing Arrays   ##
     timeList = []
     thrustList = []
@@ -139,13 +147,15 @@ if exists("coconut.jpg"):
     dynamicPressureList = []
     thrustCurve = []
     positionPoints = []
+    orientationList = []
 
     ##   Zeroing Variables   ##
     burnedMass = 0
     dragNewtons = 0
     densityPascals = 0
     positionTuple = (0,0,0)
-    orientationTuple = (math.cos(math.radians(pitchAngle))*math.cos(math.radians(azimuthAngle)), math.cos(math.radians(pitchAngle))*math.sin(math.radians(azimuthAngle)), math.sin(math.radians(pitchAngle)))
+    launchVector = (math.cos(math.radians(pitchAngle))*math.cos(math.radians(azimuthAngle)), math.cos(math.radians(pitchAngle))*math.sin(math.radians(azimuthAngle)), math.sin(math.radians(pitchAngle)))
+    orientationTuple = launchVector
     thrustTuple = (0,0,0)
     accelerationTuple = (0,0,0)
     velocityTuple = (0,0,0)
@@ -158,15 +168,12 @@ if exists("coconut.jpg"):
 
     #### Main Loop ####
     for i in range(0, int(timeLimitSeconds/timeStepSeconds)):
-      if burnedMass < propellantMassKilograms:
-          currentMass = initialMassKilograms-burnedMass
 
-      if orientationTuple[2] < 0 and i < 1:
-        orientationTuple[2] = 0
-        
+      if burnedMass < propellantMassKilograms:
+          currentMass = initialMassKilograms-burnedMass        
       
-      if positionTuple[2] < 0:
-        positionTuple = (positionTuple[0], positionTuple[1], 0)
+      if positionTuple[2] < 0 and i < 100:
+        positionTuple = (positionTuple[0], positionTuple[1], 0.0)
 
       if positionTuple[2] < -1:
         break
@@ -187,9 +194,7 @@ if exists("coconut.jpg"):
           try: densityPascals = 1.225-(0.000113*positionTuple[2])
           except OverflowError:
             densityPascals = 0
-          #finally:
-            #print (f"Overflow Error Log, time at {i*timeStepSeconds} seconds")
-            #print (f"Current Altitude: {currentAltitudeMeter}")
+      
       dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)/2*crossSectionalArea  # Newtons
 
       dragTuple = multiplyTuple(multiplyTuple(orientationTuple,-1), dragNewtons)
@@ -197,19 +202,12 @@ if exists("coconut.jpg"):
       dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)
 
         ######  This is where the kinematics are calculated  ######
-      #acceleration = (currentThrustNewtons-dragNewtons)/currentMass-9.7918
       
       accelerationTuple = addTuple(divideTuple(addTuple(thrustTuple, dragTuple), currentMass), (0,0,-9.7918))
       
-      #velocityMetersSquared = velocityMetersSquared+acceleration*timeStepSeconds
-      
       velocityTuple = addTuple(velocityTuple, multiplyTuple(accelerationTuple, timeStepSeconds))
       
-      #currentAltitudeMeter = currentAltitudeMeter+velocityMetersSquared*timeStepSeconds
-      
       positionTuple = addTuple(positionTuple, multiplyTuple(velocityTuple, timeStepSeconds))
-      
-      #altitudeTuple = addTuple(altitudeTuple, multiplyTuple(velocityTuple, timeStepSeconds))
       
       burnedMass = burnedMass+burnRateKgS*(1*timeStepSeconds)
 
@@ -217,12 +215,16 @@ if exists("coconut.jpg"):
       timeList.append(int(i))
       altitudeList.append(positionTuple[2])
       thrustList.append(getMagnitude(thrustTuple, timeStepSeconds, i))
-      velocityList.append(getMagnitude(velocityTuple, timeStepSeconds, i))
-      accelerationList.append(getMagnitude(accelerationTuple, timeStepSeconds, i))
+      velocityList.append(np.dot(velocityTuple, orientationTuple))
+      accelerationList.append(np.dot(accelerationTuple, orientationTuple))
       positionPoints.append(positionTuple)
+      orientationList.append(orientationTuple)
 
-      orientationTuple = addTuple(orientationTuple,(0,0,0.0001))
+      orientationTuple = getUnitVector(
+        addTuple(orientationTuple, 
+        getOrientation(multiplyTuple(launchVector, -1), positionPoints[-1], timeStepSeconds, i)))
       
+
     figType = "3D"
 
     if figType == "2D":
@@ -234,6 +236,8 @@ if exists("coconut.jpg"):
       fig = output[0]
       xLand = output[1]
       yLand = output[2]
-
-
+    """
+    for i in range(0, round(len(accelerationList)*.6)):
+      print (f"Orientation: {accelerationList[i]}")
+    """
     return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, xLand, yLand, fig
