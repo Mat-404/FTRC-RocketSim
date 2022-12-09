@@ -60,12 +60,50 @@ sg.theme('DarkBrown5')
 
 column_1 = [[sg.Image(filename = 'Rocketry_Club_Logo.png', key='-IMAGE-')]]
 column_2 = [[sg.Text("Welcome to the FTRC Rocket Designer!")],
-            [sg.Text("This is a work in progress, so please be patient.")]]
+            [sg.Text("This is a work in progress, so please be patient.")],
+            [sg.Button("Start")]]
 layout = [[sg.Column(column_1),
            sg.Column(column_2)]]
 window1 = sg.Window('FTRC Rocket Designer', layout, finalize=True)
 window1.force_focus()
 event, values = window1.read()
+
+column_1 = [[sg.Image(filename = 'Rocketry_Club_Logo.png', key='-IMAGE-')]]
+column_2 = [[sg.Canvas(size=(400, 400), background_color='white', key='-CANVAS-')]]
+column_3 = [[sg.Listbox(values = ("Cone", "Truncated Cone", "Cylinder"), size=(20, 3), key='-SHAPE-')],
+            [sg.Text("X-Coordinate: "), sg.InputText(size=(15,1))],
+            [sg.Text("Y-Coordinate: "), sg.InputText(size=(15,1))],
+            [sg.Button("Add Shape")],
+            [sg.Button("Undo")]
+            ]
+
+layout = [[sg.Column(column_1),
+           sg.Column(column_2),
+           sg.Column(column_3)]]
+
+window1.close()
+window2 = sg.Window('FTRC Rocket Designer', layout, finalize=True)
+window2.force_focus()
+
+def updateCanvas():
+    print("Updating Canvas")
+
+Shapes = []
+
+while True:
+    #updateCanvas(Shapes)
+    event, values = window2.read()
+    if event == sg.WIN_CLOSED:
+        break
+    if event == "Add Shape":
+        if values['-SHAPE-'] == ['Cone']:
+            Shapes.append(Cone(0.1525, 0.610, "horizontal", 50, 0))
+            updateCanvas()
+        elif values['-SHAPE-'] == "Truncated Cone":
+            print("Truncated Cone")
+        elif values['-SHAPE-'] == "Cylinder":
+            print("Cylinder")
+
 
 mainBody = Cone(0.1525, 0.610, "horizontal", 50, 0)
 payloadBay = TruncatedCone(0.147, 0.056, 0.293, "horizontal", 0, 0)
