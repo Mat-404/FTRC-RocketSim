@@ -31,7 +31,6 @@ def sysRestart():
 
 column_1 = [[sg.Image(filename = 'Rocketry_Club_Logo.png', key='-IMAGE-')]]
 column_2 = [[sg.Text("Welcome to the FTRC Rocket Simulator!")],
-            [sg.Text("This is a work in progress, so please be patient.")],
             [sg.Text("Choose which engine you want to use:")],
             [sg.Button("D12"), sg.Button("F15"), sg.Button("H13"), sg.Button("E12")], 
             [sg.Text("Payload Mass (Kg): "), sg.InputText(size=(15,1)), sg.Text("Pitch Angle (Deg): "), sg.InputText(size=(17,1))],
