@@ -92,6 +92,8 @@ A few concessions:
     The aerodynamic calculations do not concern the aerodynamic fins, or any protrusions/indents made for ease of access.
     The structure of the rocket was determined rudimentarily in Mk 1 Data Sheet.xlsx. However, it is missing calculations for the fins, 
 as well as having a very rough estimate of 3D-printing mass, with innacuracies due to infill, material, sanding, paint, etc.
+    This is planned to be updated in the future with the use of a custom program to design the rocket, however until I can't resist the urge to learn
+    OpenGL, this will have to do.
     There were also no mass estimates made for any metal components or parachute components. More reasearch is needed.
 
     In order to run the simulation in dev mode, the local system needs to have Python, Pip, matplotlib, and openpyxl. These can be installed with the following:
@@ -107,6 +109,9 @@ as well as having a very rough estimate of 3D-printing mass, with innacuracies d
 
     openpyxl: pip install openpyxl
         -https://pypi.org/project/openpyxl/
+    
+    Pillow: pip install Pillow
+        -https://pypi.org/project/Pillow/
 
     -Do not under any circumstances delete coconut.jpg.
 
