@@ -17,6 +17,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib
+import math
 from openpyxl import load_workbook
 from os.path import exists
 
@@ -26,8 +27,40 @@ EngineData = DataWorkbook["Engines"]
 if exists("coconut.jpg"):
 
   columnVar = ''
-  launchAzimuth = 0
-  launchPitch = 90
+
+  def addTuple(tuple1, tuple2):
+    return tuple(map(sum, zip(tuple1, tuple2)))
+  
+  def multiplyTuple(tuple1, scalar):
+    return tuple(map(lambda x: x*scalar, tuple1))
+  
+  def divideTuple(tuple1, scalar):
+    return tuple(map(lambda x: x/scalar, tuple1))
+  
+  def getMagnitude(tuple1, timeStep, time):
+    temp = 0
+    try: temp = math.sqrt(tuple1[0]**2+tuple1[1]**2+tuple1[2]**2)
+    except: 
+      print(f"Overflow error at t={timeStep*time}s")
+      print(f"Tuple: {tuple1}")
+    return temp
+
+  def getOrientation(tuple1, tuple2, timeStep, time):
+    try: a = math.sqrt((tuple2[0]-tuple1[0])**2+(tuple2[1]-tuple1[1])**2+(tuple2[2]-tuple1[2])**2)
+    except: 
+      print(f"Overflow error at t={timeStep*time}s")
+      print(f"Tuple: {tuple1}")
+      a = 0
+    b = (abs(tuple2[0]-tuple1[0]), abs(tuple2[1]-tuple1[1]), abs(tuple2[2]-tuple1[2]))
+    return divideTuple(b,a)
+
+  def getUnitVector(tuple):
+    a = math.sqrt(tuple[0]**2+tuple[1]**2+tuple[2]**2)
+    return (tuple[0]/a, tuple[1]/a, tuple[2]/a)
+
+  def getThreeDimensionalSlope(tuple1, tuple2):
+    temp = math.sqrt((tuple1[0]-tuple2[0])**2+(tuple1[1]-tuple2[1])**2+(tuple1[2]-tuple2[2])**2)
+    return (divideTuple((tuple1[0]-tuple2[0],tuple1[1]-tuple2[1],tuple1[2]-tuple2[2]),temp))
 
   def assignDataVariables(EngineChoice):
     if EngineChoice == "D12":
@@ -64,20 +97,35 @@ if exists("coconut.jpg"):
 
     return fig
 
-  def createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList):
+  def createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, positionPoints):
     fig = plt.figure(facecolor='#390505')
     ax = plt.axes(projection='3d')
     xVals = []
     yVals = []
-    for i in range (0,len(altitudeList)):
-      xVals.append(0)
-      yVals.append(0)
-    ax.plot3D(xVals, yVals, altitudeList)
+    zVals = []
+    xLand = 0
+    yLand = 0
+    for i in positionPoints:
+      xVals.append(i[0])
+      yVals.append(i[1])
+      zVals.append(i[2])
+    
+    # remove points that have a zValue less than 0
+    for i in range(len(zVals)):
+      if zVals[i] < 0 and i > 1000:
+        xVals = xVals[:i]
+        yVals = yVals[:i]
+        zVals = zVals[:i]
+        xLand = xVals[-1]
+        yLand = yVals[-1]
+        break
+
+    ax.plot3D(xVals, yVals, zVals)
     ax.set_title(f'Rocket Simulation for {str(int(numberOfEngines))} {EngineChoice} Engines\n and a payload of {str(payloadMass)} kg')
 
-    return fig
+    return fig, xLand, yLand
 
-  def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines):
+  def calculateSim(EngineChoice, timeStepSeconds, timeLimitSeconds, payloadMass, numberOfEngines, pitchAngle, azimuthAngle):
     
     ##  Importing data from spreadsheet ##
     ##  engine choice corresponds to column in spreadsheet ##
@@ -98,28 +146,36 @@ if exists("coconut.jpg"):
     altitudeList = []
     dynamicPressureList = []
     thrustCurve = []
+    positionPoints = []
+    orientationList = []
 
     ##   Zeroing Variables   ##
     burnedMass = 0
-    velocityMetersSquared = 0
-    currentAltitudeMeter = 0
     dragNewtons = 0
     densityPascals = 0
-    currentThrustNewtons = 0
+    positionTuple = (0,0,0)
+    launchVector = (math.cos(math.radians(pitchAngle))*math.cos(math.radians(azimuthAngle)), math.cos(math.radians(pitchAngle))*math.sin(math.radians(azimuthAngle)), math.sin(math.radians(pitchAngle)))
+    orientationTuple = launchVector
+    thrustTuple = (0,0,0)
+    accelerationTuple = (0,0,0)
+    velocityTuple = (0,0,0)
+    
 
+    pitchAngle = math.radians(pitchAngle)
+    azimuthAngle = math.radians(azimuthAngle)
 
     thrustCurve = tca.main(EngineChoice)
 
     #### Main Loop ####
     for i in range(0, int(timeLimitSeconds/timeStepSeconds)):
+
       if burnedMass < propellantMassKilograms:
-          currentMass = initialMassKilograms-burnedMass
+          currentMass = initialMassKilograms-burnedMass        
+      
+      if positionTuple[2] < 0 and i < 100:
+        positionTuple = (positionTuple[0], positionTuple[1], 0.0)
 
-      if (i < 1):
-        if currentAltitudeMeter < 0:
-          currentAltitudeMeter = 0
-
-      if currentAltitudeMeter < -300:
+      if positionTuple[2] < -1:
         break
 
         ### Calculating Thrust from curve ###
@@ -129,49 +185,59 @@ if exists("coconut.jpg"):
           break
         else:
           currentThrustNewtons = 0
+      
+      thrustTuple = multiplyTuple(orientationTuple, currentThrustNewtons)
         
         ######  This is where the drag is calculated  ######
-      if currentAltitudeMeter < 11019.13:
+      if positionTuple[2] < 11019.13:
           # (Assuming linear density change under 1km)
-          try: densityPascals = 1.225-(0.000113*currentAltitudeMeter)
+          try: densityPascals = 1.225-(0.000113*positionTuple[2])
           except OverflowError:
             densityPascals = 0
-          #finally:
-            #print (f"Overflow Error Log, time at {i*timeStepSeconds} seconds")
-            #print (f"Current Altitude: {currentAltitudeMeter}")
-      dragNewtons = coeffDrag*(densityPascals*velocityMetersSquared**2)/2*crossSectionalArea  # Newtons
+      
+      dragNewtons = coeffDrag*(densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)/2*crossSectionalArea  # Newtons
 
-      dynamicPressureList.append((1/2)*densityPascals*velocityMetersSquared**2)
+      dragTuple = multiplyTuple(multiplyTuple(orientationTuple,-1), dragNewtons)
+
+      dynamicPressureList.append((1/2)*densityPascals*getMagnitude(velocityTuple, timeStepSeconds, i)**2)
 
         ######  This is where the kinematics are calculated  ######
-      acceleration = (currentThrustNewtons-dragNewtons)/currentMass-9.7918
-      velocityMetersSquared = velocityMetersSquared+acceleration*timeStepSeconds
-      currentAltitudeMeter = currentAltitudeMeter+velocityMetersSquared*timeStepSeconds
+      
+      accelerationTuple = addTuple(divideTuple(addTuple(thrustTuple, dragTuple), currentMass), (0,0,-9.7918))
+      
+      velocityTuple = addTuple(velocityTuple, multiplyTuple(accelerationTuple, timeStepSeconds))
+      
+      positionTuple = addTuple(positionTuple, multiplyTuple(velocityTuple, timeStepSeconds))
+      
       burnedMass = burnedMass+burnRateKgS*(1*timeStepSeconds)
 
       ######  This is where the data is stored  ######
       timeList.append(int(i))
-      altitudeList.append(currentAltitudeMeter)
-      thrustList.append(currentThrustNewtons)
-      velocityList.append(velocityMetersSquared)
-      accelerationList.append(acceleration)
-    
-    ## Remove entries after a time length after maximum height ##
-    
-    for i in range(0, round(len(altitudeList)-(altitudeList.index(max(altitudeList)))*1.3 )):
-      altitudeList.pop()
-      velocityList.pop()
-      accelerationList.pop()
-      timeList.pop()
-      thrustList.pop()
-      dynamicPressureList.pop()
+      altitudeList.append(positionTuple[2])
+      thrustList.append(getMagnitude(thrustTuple, timeStepSeconds, i))
+      velocityList.append(np.dot(velocityTuple, orientationTuple))
+      accelerationList.append(np.dot(accelerationTuple, orientationTuple))
+      positionPoints.append(positionTuple)
+      orientationList.append(orientationTuple)
+
+      orientationTuple = getUnitVector(
+        addTuple(orientationTuple, 
+        getOrientation(multiplyTuple(launchVector, -1), positionPoints[-1], timeStepSeconds, i)))
+      
 
     figType = "3D"
 
     if figType == "2D":
       fig = createTwoDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList)
+      xLand = ''
+      yLand = ''
     elif figType == "3D":
-      fig = createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, timeList, altitudeList, velocityList, thrustList, accelerationList)
-
-
-    return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, fig
+      output = createThreeDimensionalFigure(numberOfEngines, EngineChoice, payloadMass, positionPoints)
+      fig = output[0]
+      xLand = output[1]
+      yLand = output[2]
+    """
+    for i in range(0, round(len(accelerationList)*.6)):
+      print (f"Orientation: {accelerationList[i]}")
+    """
+    return timeList, altitudeList, velocityList, thrustList, accelerationList, dynamicPressureList, xLand, yLand, fig
